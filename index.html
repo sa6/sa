@@ -7,6 +7,147 @@
   </head>
   <body>
     <h1>大家好，这是我的博客，欢迎大家来留言</h1>
+     <h5>这是一个24点游戏答案，玩游戏请加群 【WebKit 内核浏览器开发 244840771】</h5>
+    <input id="sz" value="【7】【12】【3】【3】"/>
+<p id=showit style="color:#aa3388;width:300;height:150;border:solid 1px #008800;">&nbsp;</p>
+
+<script>
+document.getElementById("sz").oninput=function(e){
+strs=e.target.value.split("】"); 
+if(strs.length==5)
+{
+for(i in strs)
+z[i]=strs[i].replace("【","").replace(" ","");cal();
+}
+else
+{
+showit.innerHTML="字符串格式错误<br/>"+e.target.value;
+}
+
+}
+var mode=new Array();
+mode[0]='a+b+c+d';
+mode[1]='a+b+c-d';
+mode[2]='a+b-c-d';
+mode[3]='a*b+c+d';
+mode[4]='a*b*c+d';
+mode[5]='a*b+c*d';
+mode[6]='a*b*c*d';
+mode[7]='a/b+c+d';
+mode[8]='a/b/c+d';
+mode[9]='a/b+c/d';
+mode[10]='a*b*c/d';
+mode[11]='a*b/c/d';
+mode[12]='a*b/c+d';
+mode[13]='a/b+c*d';
+mode[14]='a*b-c-d';
+mode[15]='a*b*c-d';
+mode[16]='a*b-c*d';
+mode[17]='a*b/c-d';
+mode[18]='a*b+c-d';
+mode[19]='(a+b+c)*d';
+mode[20]='(a+b-c)*d';
+mode[21]='(a*b+c)*d';
+mode[22]='(a*b-c)*d';
+mode[23]='(a/b+c)*d';
+mode[24]='(a/b-c)*d';
+mode[25]='(a+b+c)/d';
+mode[26]='(a+b-c)/d';
+mode[27]='(a*b+c)/d';
+mode[28]='(a*b-c)/d';
+mode[29]='(a/b+c)/d';
+mode[30]='(a+b)*c+d';
+mode[31]='(a-b)*c+d';
+mode[32]='(a+b)/c+d';
+mode[33]='(a-b)/c+d';
+mode[34]='(a+b)*c-d';
+mode[35]='(a-b)*c-d';
+mode[36]='(a+b)/c-d';
+mode[37]='(a+b)*c*d';
+mode[38]='(a-b)*c*d';
+mode[33]='(a+b)/c*d';
+mode[40]='(a-b)/c*d';
+mode[41]='(a+b)/c/d';
+mode[42]='(a+b)*(c+d)';
+mode[43]='(a+b)*(c-d)';
+mode[44]='(a-b)*(c-d)';
+mode[45]='(a+b)/(c+d)';
+mode[46]='(a+b)/(c-d)';
+mode[47]='a/b+c-d';
+mode[48]='a+b/(c+d)';
+mode[49]='a*b/(c+d)';
+mode[50]='a+b/(c-d)';
+mode[51]='a*b/(c-d)';
+mode[52]='a/(b-c/d)';
+var vari=new Array(
+'0123',
+'0132',
+'0213',
+'0231',
+'0312',
+'0321',
+'1023',
+'1032',
+'1203',
+'1230',
+'1302',
+'1320',
+'2013',
+'2031',
+'2103',
+'2130',
+'2301',
+'2310',
+'3012',
+'3021',
+'3102',
+'3120',
+'3201',
+'3210');
+var z=new Array();
+z[0]=7;
+z[1]=12;
+z[2]=3;
+z[3]=3;
+function cal(){
+showit.innerHTML='<br>标准答案：<br>';
+var p=0;
+for(i=0;i<mode.length;i++){
+for(j=0;j<24;j++){
+a=parseInt(z[vari[j].charAt(0)]);
+b=parseInt(z[vari[j].charAt(1)]);
+c=parseInt(z[vari[j].charAt(2)]);
+d=parseInt(z[vari[j].charAt(3)]);
+var s=mode[i];
+var result=eval(s);
+if(Math.abs(result-24)<1E-5){
+var ina=mode[i].indexOf('a');
+var inb=mode[i].indexOf('b');
+var inc=mode[i].indexOf('c');
+var ind=mode[i].indexOf('d');
+showit.innerHTML+='<input value="'+mode[i].substring(0,ina)+a+mode[i].substring(ina+1,inb)+b+mode[i].substring(inb+1,inc)+c+mode[i].substring(inc+1,ind)+d+mode[i].substring(ind+1,mode[i].length)+'"/>=24\n';
+showit.innerHTML+='<br>';
+p=1;
+break;
+}
+}
+}
+if(p) {
+
+var t=document.getElementsByTagName("input");
+function bd(i){t[i].onclick=function(){t[i].focus();t[i].select();}}
+for(var i=0;i<t.length;i++)
+{
+bd(i);
+}
+
+
+return 0;}
+
+else showit.innerHTML='无解';
+}
+cal();
+	</script>
 <!-- UY BEGIN -->
 <div id="uyan_frame"></div>
 <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
