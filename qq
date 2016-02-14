@@ -3,23 +3,28 @@ window.y = {
     state:{},
     jf:0,
     msg: function (text) {
-        console.log(text);
+        y.log(text);
     },
     send: function (text) {
         document.getElementById("chat_textarea").value = text
         document.getElementById("send_chat_btn").click()
     },
     user: "@妖-阵冰",
+    log: function (a) { y.logState&&console.log(a) },
+    logState:false
 }
-mq.model.chat.addGroupMessage = function (h, o) {
-    if (o && o.content && o.content[1]) y.groupMsg(o)
-}
+mq.model.chat.addGroupMessage = function (h, o) {if (o && o.content && o.content[1]) y.groupMsg(o)}
+mq.view.audioNotification.onAllMessageReceived =function (b){};
 //mq.model.chat.sendMsg({to: 2517306543, content: JSON.stringify(msgArray), face: 147})
 //mq.model.chat.sendGroupMsg({group_uin: 1851417805,content: JSON.stringify(msgArray)})
 //var msgArray=["表情微笑",["face",14]," ",["font",{"name":"宋体","size":10,"style":[0,0,0],"color":"000000"}]]
-//mq.model.chat.addGroupMessage=function(h,o){console.log(h);console.log(o);}
+//mq.model.chat.addGroupMessage=function(h,o){y.log(h);y.log(o);}
 //mq.model.chat.m_model.getFriendByUin(748575326)
 //code: 3393147240 gid: 164975752
+//接收到消息事件
+//var a=mq.main.events["receiveMessage"][0];
+//mq.main.events["receiveMessage"]=[];
+//mq.main.events["receiveMessage"].push(a);
 y.sendGroupMsg = function (group_uin, msgArray) {
     mq.model.chat.sendGroupMsg({ group_uin: group_uin, content: JSON.stringify(msgArray) })
 }
@@ -65,13 +70,13 @@ y.getGroupList = function () {
         param: { vfwebqq: mq.vfwebqq, hash: u(mq.model.chat.m_model.getSelfUin(), mq.ptwebqq) },
         onSuccess: function (N) {
             if (N.retcode == 0) {
-                console.log(N.result)
+                y.log(N.result)
             }
         }
     })
 }
 y.getUserByUin = function (uin, callback) {
-    if (typeof callback != "function") callback = function (result) {console.log(result) };
+    if (typeof callback != "function") callback = function (result) {y.log(result) };
     if (!uin) { callback(); return; }
     var r = mq.model.chat.m_model.getFriendByUin(uin);
     if (typeof r != "object") { callback(); return; }
@@ -93,7 +98,7 @@ y.getUserByUin = function (uin, callback) {
 })}
 y.getGroupCardName = function (o) {
     //if (typeof o != "object" || !o.from_uin || !o.from_group) {
-    //    console.log("获取群名片对象错误"); console.log(o);
+    //    y.log("获取群名片对象错误"); y.log(o);
     //    return;
     //}
     var from_uin=o.from_uin;
@@ -200,7 +205,6 @@ game24 = function (value) {
 }
 
 dudaxiao = {
-    cs:0,
     lCount: 0,
     wCount: 0,
     allCount:0,
@@ -212,8 +216,6 @@ dudaxiao = {
     },
     all: function (group_uin)
     {
-        this.cs++;
-        console.log(this.cs);
         this.allCount++;
         if(this.allCount>20)
         {
@@ -381,15 +383,15 @@ y.groupMsgDu = function (o) {
         if (!reasult) reasult = "老夫老眼昏花看不清这个是什么么法算啊";
             y.sendGroupText(group_uin, reasult);
     }
-    console.log(o.from_group.name + " " + o.sender.name + "(" + o.sender.cardName + ")\n\r"+o.content.toString())
+    y.log(o.from_group.name + " " + o.sender.name + "(" + o.sender.cardName + ")\n\r"+o.content.toString())
 }
 y.groupMsg = function (o) {
     if (!o.from_group) {
-        //console.log("Error groupMsg");
-        //console.log(o);
+        //y.log("Error groupMsg");
+        //y.log(o);
         return;
     }
-    //console.log(o);
+    //y.log(o);
 
     y.groupMsgTest(o);
     y.groupMsgDu(o)
