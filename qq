@@ -1,0 +1,397 @@
+window.y = {
+    group: {},
+    state:{},
+    jf:0,
+    msg: function (text) {
+        console.log(text);
+    },
+    send: function (text) {
+        document.getElementById("chat_textarea").value = text
+        document.getElementById("send_chat_btn").click()
+    },
+    user: "@妖-阵冰",
+}
+mq.model.chat.addGroupMessage = function (h, o) {
+    if (o && o.content && o.content[1]) y.groupMsg(o)
+}
+//mq.model.chat.sendMsg({to: 2517306543, content: JSON.stringify(msgArray), face: 147})
+//mq.model.chat.sendGroupMsg({group_uin: 1851417805,content: JSON.stringify(msgArray)})
+//var msgArray=["表情微笑",["face",14]," ",["font",{"name":"宋体","size":10,"style":[0,0,0],"color":"000000"}]]
+//mq.model.chat.addGroupMessage=function(h,o){console.log(h);console.log(o);}
+//mq.model.chat.m_model.getFriendByUin(748575326)
+//code: 3393147240 gid: 164975752
+y.sendGroupMsg = function (group_uin, msgArray) {
+    mq.model.chat.sendGroupMsg({ group_uin: group_uin, content: JSON.stringify(msgArray) })
+}
+y.sendGroupText = function (group_uin, text) {
+    var msgArray = [text, ["font", { "name": "宋体", "size": 10, "style": [0, 0, 0], "color": "000000" }]];
+    y.sendGroupMsg(group_uin, msgArray);
+}
+
+y.sendMsg = function (to, msgArray) {
+    mq.model.chat.sendMsg({ to: to, content: JSON.stringify(msgArray), face: 147 })
+}
+y.sendText = function (to, text) {
+    var msgArray = [text, ["font", { "name": "宋体", "size": 10, "style": [0, 0, 0], "color": "000000" }]];
+    y.sendMsg(to, msgArray);
+}
+y.getUinUser = function (uin) {
+    return mq.model.chat.m_model.getFriendByUin(uin);
+}
+y.getGroupList = function () {
+    var u = function (x, I) {
+        x += "";
+        for (var N = [], T = 0; T < I.length; T++) N[T % 4] ^= I.charCodeAt(T);
+        var U = ["EC", "OK"],
+        V = [];
+        V[0] = x >> 24 & 255 ^ U[0].charCodeAt(0);
+        V[1] = x >> 16 & 255 ^ U[0].charCodeAt(1);
+        V[2] = x >> 8 & 255 ^ U[1].charCodeAt(0);
+        V[3] = x & 255 ^ U[1].charCodeAt(1);
+        U = [];
+        for (T = 0; T < 8; T++) U[T] = T % 2 == 0 ? N[T >> 1] : V[T >> 1];
+        N = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+        V = "";
+        for (T = 0; T < U.length; T++) {
+            V += N[U[T] >> 4 & 15];
+            V += N[U[T] & 15]
+        }
+        return V
+    }
+    mq.rpcService.require({
+        url: mq.STATIC_CGI_URL + "api/get_group_name_list_mask2",
+        method: "POST",
+        withCredentials: true,
+        param: { vfwebqq: mq.vfwebqq, hash: u(mq.model.chat.m_model.getSelfUin(), mq.ptwebqq) },
+        onSuccess: function (N) {
+            if (N.retcode == 0) {
+                console.log(N.result)
+            }
+        }
+    })
+}
+y.getUserByUin = function (uin, callback) {
+    if (typeof callback != "function") callback = function (result) {console.log(result) };
+    if (!uin) { callback(); return; }
+    var r = mq.model.chat.m_model.getFriendByUin(uin);
+    if (typeof r != "object") { callback(); return; }
+    if (r.ruin)
+    {
+        callback(r);
+        return;
+    }
+    mq.rpcService.require({
+    url: mq.STATIC_CGI_URL + "api/get_friend_uin2",
+    method: "GET",
+    param: { tuin: uin, type: 1, vfwebqq: mq.vfwebqq },
+    withCredentials: true,
+    onSuccess: function (N) {
+        if (N.retcode == 0) { r.ruin = N.result.account; callback(r); }
+        else
+        { callback(); }
+        }
+})}
+y.getGroupCardName = function (o) {
+    //if (typeof o != "object" || !o.from_uin || !o.from_group) {
+    //    console.log("获取群名片对象错误"); console.log(o);
+    //    return;
+    //}
+    var from_uin=o.from_uin;
+    var member = o.from_group.members;
+    if (y.group[from_uin]) return y.group[from_uin].cardName;
+    var selfUin = mq.model.chat.m_model.getSelfUin();
+    for (var i = 0; i < member.length; i++) {
+        if (member[i].uin == selfUin) {
+            y.group[from_uin] = member[i];
+            return y.group[from_uin].cardName;
+        }
+    }
+    return;
+}
+getNum = function (e) { return isNaN(parseFloat(e)) ? 0 : parseFloat(e) };
+function judgeNum24(evalStr) {
+    try {
+        if (eval(evalStr) == 24)
+            return true;
+    }
+    catch (e) {
+        // do nothing
+    }
+}
+function game24Alg(arrayNum) {
+    /*------------------------------------- 
+    原理阐述： 
+    四个数字，判断怎样得到 24 可能而且没有重复的组合方式如下： 
+    可能的组合方式 
+    a+b+c+d 
+    a+(b+c)+d 
+    (a+b)+c+d 
+    a+b+(c+d) 
+    a+(b+c+d) 
+    (a+b+c)+d 
+    (a+b)+(c+d) 
+    (a+(b+c))+d 
+    ((a+b)+c)+d 
+    a+(b+(c+d)) 
+    a+((b+c)+d) 
+    ---------------------------------------*/
+    var sign = new Array("+", "-", "*", "/");
+    var model = [
+"axbyczd ",
+"ax(byc)zd ",
+"(axb)yczd ",
+"axby(czd) ",
+"ax(byczd) ",
+"(axbyc)zd ",
+"(axb)y(czd) ",
+"(ax(byc))zd ",
+"((axb)yc)zd ",
+"ax(by(czd)) ",
+"ax((byc)zd)",
+]
+    for (s1 = 0; s1 < 4; s1++) {
+        for (s2 = 0; s2 < 4; s2++) {
+            for (s3 = 0; s3 < 4; s3++) {
+                for (n1 = 0; n1 < 4; n1++) {
+                    for (n2 = 0; n2 < 4; n2++) {
+                        if (n2 == n1)
+                            continue;
+                        for (n3 = 0; n3 < 4; n3++) {
+                            if (n3 == n1 || n3 == n2)
+                                continue;
+                            for (n4 = 0; n4 < 4; n4++) {
+                                if (n4 == n1 || n4 == n2 || n4 == n3)
+                                    continue;
+                                for (m = 0; m < 11;m++)
+                                {
+                                    evalStr = model[m]
+                                        .replace("a", arrayNum[n1])
+                                        .replace("b", arrayNum[n2])
+                                        .replace("c", arrayNum[n3])
+                                        .replace("d", arrayNum[n4])
+                                        .replace("x", sign[s1])
+                                        .replace("y", sign[s2])
+                                        .replace("z", sign[s3])
+                                    if (judgeNum24(evalStr)) {
+                                        return evalStr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+game24 = function (value) {
+    if (typeof value != "string") return;
+    strs = value.split("】");
+    var z = new Array();
+    if (strs.length == 5) {
+        for (i in strs) {
+            var snum = strs[i].split("【");
+            if (snum.length < 1) return;
+            //z[i] = strs[i].replace("【", "").replace(" ", "");
+            z[i] = snum[1];
+        }
+        return game24Alg(z);
+    }
+}
+
+dudaxiao = {
+    cs:0,
+    lCount: 0,
+    wCount: 0,
+    allCount:0,
+    xiaZhu: function () {
+        if(lCount==1)
+        {
+            
+        }
+    },
+    all: function (group_uin)
+    {
+        this.cs++;
+        console.log(this.cs);
+        this.allCount++;
+        if(this.allCount>20)
+        {
+            this.allCount = 0;
+            y.sendGroupText(group_uin, "查看积分");
+        }
+    },
+    low: function (group_uin, jf) {
+        this.lCount++;
+        this.wCount = 0;
+        var fjf = 1;
+        if (this.lCount == 1)
+        {
+            fjf = Math.floor(jf*0.3);
+        }
+        else if (this.lCount == 2)
+        {
+            fjf = Math.floor(jf * 0.03);
+        }
+        else if (this.lCount == 3) {
+            fjf = Math.floor(jf * 0.05);
+        }
+        else{
+            this.lCount = 0;
+            fjf = Math.floor(jf * 0.09);
+        }
+        this.du(group_uin, fjf);
+        this.all(group_uin);
+    },
+    du: function (group_uin, v) {
+        if (v < 30)
+        {
+            y.sendGroupText(group_uin, "24");
+        }
+        else
+        {
+        if (!v) v = 1;
+        setTimeout(function () { y.sendGroupText(group_uin, "赌小 " + v); }, 3000 + v);
+
+        }
+    },
+    win: function (group_uin, jf) {
+        this.wCount++;
+        this.lCount = 0;
+        var fjf = 1;
+        if (this.wCount > 2)
+        {
+            fjf = Math.floor(jf * 0.01);
+            this.wCount = 0;
+        }
+        else
+        {
+            fjf = Math.floor(jf * 0.02);
+        }
+        this.du(group_uin, fjf);
+        this.all(group_uin);
+    },
+}
+y.groupMsgTest = function (o) {
+    var s = o.content.toString();
+    var group_uin = o.from_uin;
+    if (s.indexOf("我是谁") != -1) {
+        y.getUserByUin(o.sender_uin, function (user) {
+            var t=("你是：" + user.name + "\n\r群名片：" + user.cardName + "\n\rQQ号：" + user.ruin);
+            y.sendGroupText(group_uin,t);
+        });
+    }
+}
+y.groupMsgDu = function (o) {
+    var group_uin = o.from_uin;
+    var s = o.content.toString();
+    window.t = s;
+    if (s.indexOf(y.getGroupCardName(o)) != -1) {
+        y.getUserByUin(o.sender_uin, function (user) {
+            if(user.ruin=="369115959")
+            {
+                var arr = [];
+                arr.push(o.content[3].trimLeft());
+                for (var i = 4; i < o.content.length; i++)
+                {
+                    arr.push(o.content[i]);
+                }
+                arr.push(o.content[0]);
+                //y.sendGroupText(group_uin, o.content[1])
+                if (s.indexOf("刷24") != -1) {
+                    y.state.shua24 = true;
+                    y.sendGroupText(group_uin, "24");
+                }
+                else if (s.indexOf("取消刷24") != -1) {
+                    delete y.state.shua24;
+                    y.sendGroupText(group_uin, "24");
+                }
+                else if (s.indexOf("启动") != -1) {
+                     delete y.state.stop;
+                    y.sendGroupText(group_uin, "查看积分");
+                }
+                else if (s.indexOf("停止") != -1) {
+                    y.state.stop = true;
+                    y.sendGroupText(group_uin, "--M--Deid");
+                }
+                else
+                y.sendGroupMsg(group_uin, arr);
+            }
+        })
+        if (y.state.stop) return;
+        if (s.indexOf("剩余积分") != -1) {
+            var index = s.indexOf("剩余积分");
+            var ss = s.substring(index, index + 15);
+            var value = ss.replace(/[^0-9]/ig, ""); y.jf = getNum(value);
+            y.sendGroupText(group_uin, "--M--积分已校准，剩余积分" + value);
+            if(value<100)
+            {
+                y.sendGroupText(group_uin, "24");
+            }
+        }      
+        else if (s.indexOf("回答正确，奖励20积分") != -1) {
+            y.jf +=20;
+            y.sendGroupText(group_uin, "--M--二十四点游戏奖励20积分，剩余积分" + y.jf);
+            if(y.jf<100 ||y.state.shua24)
+            {
+                y.sendGroupText(group_uin, "24");
+            }
+            else
+            {
+                dudaxiao.win(group_uin, y.jf);
+            }
+        }
+        else if (s.indexOf("本次赌大小结果为") != -1) {
+            if (!y.jf) {
+                y.sendGroupText(group_uin, "查看积分");
+                return;
+            }
+            if (s.indexOf("恭喜你赢得") != -1) {
+                var index = s.indexOf("恭喜你赢得");
+                var ss = s.substring(index, index + 15);
+                ss = ss.split(",");
+                ss = ss[0];
+                var value = ss.replace(/[^0-9]/ig, "");
+                y.jf += getNum(value);
+                y.sendGroupText(group_uin, "--M--赢了" + value + "剩余积分" + y.jf);
+                dudaxiao.win(group_uin, y.jf);
+            }
+            else if (s.indexOf("很遗憾你输了") != -1) {
+                var index = s.indexOf("很遗憾你输了");
+                var ss = s.substring(index, index + 15);
+                ss = ss.split(",");
+                ss = ss[0];
+                var value = ss.replace(/[^0-9]/ig, "");
+                y.jf -= getNum(value);;
+                y.sendGroupText(group_uin, "--M--输了" + value + "剩余积分" + y.jf);
+
+                dudaxiao.low(group_uin, y.jf);
+            }
+        }
+        else if (s.indexOf("回复超过3分钟") != -1) {
+            y.sendGroupText(group_uin, "24");
+        }
+    }
+    else if (s.indexOf("回复超过3分钟") != -1)
+    {
+        y.sendGroupText(group_uin, "24");
+    }
+    else if (s.indexOf("请大家用以下4个数字计算24") != -1) {
+        var reasult = game24(s);
+        if (!reasult) reasult = "老夫老眼昏花看不清这个是什么么法算啊";
+            y.sendGroupText(group_uin, reasult);
+    }
+    console.log(o.from_group.name + " " + o.sender.name + "(" + o.sender.cardName + ")\n\r"+o.content.toString())
+}
+y.groupMsg = function (o) {
+    if (!o.from_group) {
+        //console.log("Error groupMsg");
+        //console.log(o);
+        return;
+    }
+    //console.log(o);
+
+    y.groupMsgTest(o);
+    y.groupMsgDu(o)
+}
+
